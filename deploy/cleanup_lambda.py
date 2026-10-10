@@ -21,7 +21,7 @@ def handler(event, context):
         return {'dry_run':True,'resources':expected,'api_id':state['api_id']}
     session=boto3.Session(region_name=state['region'])
     done=[]
-    missing={'NotFoundException','ResourceNotFoundException','NoSuchEntity','NoSuchBucket','ObjectNotFoundException','ValidationException'}
+    missing={'NotFoundException','ResourceNotFoundException','NoSuchEntity','NoSuchBucket','ObjectNotFoundException'}
     def call(client, action, **kwargs):
         try: getattr(session.client(client),action)(**kwargs)
         except ClientError as exc:
@@ -48,12 +48,14 @@ def handler(event, context):
     except ClientError as exc:
         if exc.response['Error']['Code'] not in missing: raise
     call('logs','delete_log_group',logGroupName=state['log_group'])
+    # Removing our own policy would revoke subsequent cleanup permissions.
+    # A separate local verification follow-up removes this last, non-billable role.
     for role,policy in [(state['role'],'ScopedProjectAccess'),
-                        (state['scheduler_role'],'InvokeOnlyCleanup'),
-                        (state['cleanup_role'],'CleanupOnlyThisProject')]:
+                        (state['scheduler_role'],'InvokeOnlyCleanup')]:
         call('iam','delete_role_policy',RoleName=role,PolicyName=policy)
         call('iam','delete_role',RoleName=role)
     call('lambda','delete_function',FunctionName=state['cleanup_function'])
     call('logs','delete_log_group',logGroupName='/aws/lambda/'+state['cleanup_function'])
     return {'cleanup':'deletion requests accepted','actions':done,
+            'remaining_nonbillable_role_for_followup':state['cleanup_role'],
             'note':'DynamoDB deletion is asynchronous; verify absence independently.'}

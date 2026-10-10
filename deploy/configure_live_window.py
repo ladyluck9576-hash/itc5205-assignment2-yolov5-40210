@@ -78,7 +78,7 @@ def main():
         'RetryPolicy':{'MaximumEventAgeInSeconds':3600,'MaximumRetryAttempts':3}})
     receipt={'dry_run':dry_result,'schedule':scheduler.get_schedule(Name=state['schedule_name']),
              'cleanup_policy':cleanup_policy,'expires_at_utc':state['expires_at_utc'],
-             'note':'AWS-native schedule confirmed. Deletion has not yet occurred; verify after expiry. Shared DynamoDB service-linked role is not deleted.'}
+             'note':'AWS-native schedule confirmed. Deletion has not yet occurred; verify after expiry. The local follow-up removes the final non-billable cleanup role. Shared DynamoDB service-linked role is not deleted.'}
     (out/'scheduled-cleanup.json').write_text(json.dumps(receipt,indent=2,default=str))
     print(json.dumps({'schedule_enabled':True,'expires_at_utc':state['expires_at_utc'],'dynamodb_write_capacity_range':[1,2],'target_percent':70}))
 if __name__=='__main__': main()
