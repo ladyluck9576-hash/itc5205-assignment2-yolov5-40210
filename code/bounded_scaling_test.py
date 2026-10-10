@@ -24,6 +24,7 @@ def main():
     if session.client('sts').get_caller_identity()['Account']!=state['account']:
         raise SystemExit('Account mismatch')
     credentials=session.get_credentials().get_frozen_credentials()
+    started_utc=datetime.now(timezone.utc).isoformat()
     begin=time.perf_counter(); deadline=begin+60
     lock=threading.Lock(); results=[]; issued=0
     def request(phase, key='input/bus.jpg', signed=True):
@@ -72,7 +73,7 @@ def main():
     args.output.mkdir(parents=True,exist_ok=True)
     (args.output/'bounded-http-tests.json').write_text(json.dumps(sorted(results,key=lambda x:x['sequence']),indent=2))
     values=sorted(x['latency_ms'] for x in results if x['http_status']==200)
-    summary={'started_at_utc':datetime.now(timezone.utc).isoformat(),'http_calls':len(results),
+    summary={'started_at_utc':started_utc,'finished_at_utc':datetime.now(timezone.utc).isoformat(),'http_calls':len(results),
              'maximum_authorized_calls':50,'maximum_workers':4,'admission_window_seconds':60,
              'elapsed_seconds':round(time.perf_counter()-begin,3),
              'status_counts':{str(code):sum(x['http_status']==code for x in results) for code in set(x['http_status'] for x in results)},

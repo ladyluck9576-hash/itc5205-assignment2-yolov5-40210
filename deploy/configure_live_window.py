@@ -33,7 +33,7 @@ def main():
     state['scaling_alarm_names']=[x['AlarmName'] for x in policy.get('Alarms',[])]
     state['cleanup_function']=name+'-cleanup'; state['cleanup_role']=name+'-cleanup-role'
     state['scheduler_role']=name+'-scheduler-role'; state['schedule_name']=name+'-expires'
-    state['expires_at_utc']=(datetime.now(timezone.utc)+timedelta(hours=24)).replace(microsecond=0).isoformat()
+    state['expires_at_utc']=(datetime.fromisoformat(state['created_at'])+timedelta(hours=24)).replace(microsecond=0).isoformat()
     save()
     (out/'dynamodb-scaling-policy.json').write_text(json.dumps({'policy':policy,'targets':targets},indent=2,default=str))
     trust={'Version':'2012-10-17','Statement':[{'Effect':'Allow','Principal':{'Service':'lambda.amazonaws.com'},'Action':'sts:AssumeRole'}]}
