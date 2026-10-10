@@ -166,3 +166,39 @@ this deviates from the literal example environment wording in the assessment.
 The user prohibited EC2 within this budget. Review that choice with the lecturer.
 
 After teardown, run python deploy/verify_cleanup.py for read-only absence checks.
+
+
+## Later approved 24-hour live window (11 October 2026)
+
+The first two deployments and their original state/cleanup exports remain historical.
+The current state is test-results/live-20261011/deployment-state.json. Never replace
+original deploy/deployment-state.json with a later run's record.
+
+The later test admitted exactly 50 HTTP calls with four workers in 41.209 seconds:
+49 signed 200 responses and one unsigned 403. There were 49 Lambda REPORT entries;
+both actual log intervals and CloudWatch ConcurrentExecutions showed peak 4.
+No 429 occurred. This does not establish high-volume capacity.
+
+DynamoDB now uses provisioned read capacity 1 and write target tracking with
+minimum 1, maximum 2, target 70%, cooldowns 60 seconds. Actual write capacity
+remained 1 and no scaling activity occurred during the bounded observation.
+Lambda uses managed on-demand scaling; no provisioned concurrency policy exists.
+
+AWS EventBridge Scheduler invokes the separate cleanup Lambda once at the recorded
+UTC expiry and deletes the schedule after invocation. It removes project paid
+resources, scaling policies/targets/alarms, the detector role and scheduler role.
+The cleanup role cannot revoke its own permissions before finishing. It therefore
+remains temporarily as a non-billable role for the scheduled local verification
+follow-up to remove. That follow-up needs the desktop host and valid temporary
+AWS access. A shared DynamoDB service-linked role is deliberately preserved.
+Cleanup is scheduled, not already completed for this third run.
+
+Manual fallback after evidence export:
+python deploy/teardown_live.py --state test-results/live-20261011/deployment-state.json
+Then supply --execute --confirm-student-id 40210 only for approved deletion.
+Verify absence afterwards. The command above is a dry run by default.
+
+For the current live demonstration:
+python code/detect_live.py --state test-results/live-20261011/deployment-state.json --key input/bus.jpg
+Use your authorized temporary SDK profile. Do not put AWS state or credentials
+in the public repository. Recheck cumulative USD 1 cost before further requests.
