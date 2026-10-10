@@ -1,0 +1,4 @@
+numpy==1.26.4
+Pillow==11.1.0
+onnxruntime==1.20.1
+boto3==1.35.99

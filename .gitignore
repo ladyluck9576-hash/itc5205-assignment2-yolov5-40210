@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.env
+.aws/
+.runs/
+build/
+*.zip
+deploy/deployment-state.json
+deploy/cleanup-result.json
+deploy/execution-policy.json
+deploy/trust-policy.json
+test-results/
+images/screenshots/
